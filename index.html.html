@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Berozgaar Engineer Restaurant</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      background-color: #f8f9fa;
+      padding-bottom: 95px;
+      color: #2b2d42;
+    }
+    header {
+      background: #d90429;
+      color: white;
+      padding: 16px 14px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    }
+    header h1 {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .location-box {
+      margin: 12px;
+      padding: 12px 14px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .location-box label {
+      font-weight: 600;
+      font-size: 0.85rem;
+      display: block;
+      margin-bottom: 6px;
+      color: #555;
+    }
+    .location-box select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      background: #fff;
+      outline: none;
+    }
+    .category-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #2b2d42;
+      margin: 18px 14px 8px;
+      text-transform: uppercase;
+      border-left: 4px solid #d90429;
+      padding-left: 8px;
+      letter-spacing: 0.5px;
+    }
+    .item-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      margin: 8px 12px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+    .item-info h4 {
+      font-size: 0.95rem;
+      margin-bottom: 4px;
+      color: #111;
+      font-weight: 600;
+    }
+    .item-info p {
+      font-size: 0.85rem;
+      color: #555;
+      font-weight: 600;
+    }
+    .qty-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-qty {
+      background: #edf2f4;
+      border: 1px solid #ccc;
+      width: 34px;
+      height: 34px;
+      border-radius: 6px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #111;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .btn-qty:active {
+      background: #cbd5e1;
+    }
+    .qty-val {
+      font-weight: 600;
+      min-width: 22px;
+      text-align: center;
+      font-size: 1rem;
+      color: #111;
+    }
+    .bottom-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: white;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 -2px 10px rgba(0,0,0,0.15);
+      z-index: 100;
+    }
+    .total-title {
+      font-size: 0.75rem;
+      color: #777;
+    }
+    .total-price {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #2b2d42;
+    }
+    .btn-order {
+      background: #25d366;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn-order:active {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Berozgaar Engineer Restaurant</h1>
+  </header>
+
+  <div class="location-box">
+    <label for="tableSelect">आपकी टेबल / हट:</label>
+    <select id="tableSelect">
+      <option value="Hut 1">Hut 1</option>
+      <option value="Hut 2">Hut 2</option>
+      <option value="Hut 3">Hut 3</option>
+      <option value="Table 1">Table 1</option>
+      <option value="Table 2">Table 2</option>
+    </select>
+  </div>
+
+  <div id="menu-container"></div>
+
+  <div class="bottom-bar">
+    <div>
+      <div class="total-title">कुल बिल</div>
+      <div class="total-price">₹<span id="grandTotal">0</span></div>
+    </div>
+    <button class="btn-order" onclick="sendOrder()">ऑर्डर भेजें (WhatsApp)</button>
+  </div>
+
+  <script>
+    var RESTAURANT_PHONE = "919864917668";
+
+    // स्क्रीनशॉट के अनुसार पूरा मेनू
+    var menuData = [
+      { 
+        cat: "SNACKS & BEVERAGES", 
+        items: [
+          { id: "s1", name: "Onion Pokora", price: 105 }, 
+          { id: "s2", name: "Pokora", price: 75 }, 
+          { id: "s3", name: "Fried Mix Sana", price: 95 }, 
+          { id: "s4", name: "Mix Sana", price: 65 }
+        ] 
+      },
+      { 
+        cat: "PRE ORDER BOOKING", 
+        items: [
+          { id: "b1", name: "Boil Chicken Thali", price: 285 }, 
+          { id: "b2", name: "Chicken Thali", price: 305 }, 
+          { id: "b3", name: "Chicken Roti Thali", price: 155 }
+        ] 
+      },
+      { 
+        cat: "VEG ITEMS", 
+        items: [
+          { id: "v1", name: "Veg Fried Rice", price: 95 }, 
+          { id: "v2", name: "Veg Chowmein", price: 95 }
+        ] 
+      },
+      { 
+        cat: "PANEER ITEMS", 
+        items: [
+          { id: "p1", name: "Paneer Fried Rice", price: 125 }, 
+          { id: "p2", name: "Paneer Chowmein", price: 125 }, 
+          { id: "p3", name: "Paneer Pokora", price: 95 }
+        ] 
+      },
+      { 
+        cat: "EGG ITEMS", 
+        items: [
+          { id: "e1", name: "Egg Chowmein", price: 115 }, 
+          { id: "e2", name: "Egg Fried Rice", price: 115 }
+        ] 
+      },
+      { 
+        cat: "CHICKEN ITEMS", 
+        items: [
+          { id: "c1", name: "Chicken Chowmein", price: 155 }, 
+          { id: "c2", name: "Chicken Fried Rice", price: 155 }, 
+          { id: "c3", name: "Chicken Dry Fry", price: 155 }, 
+          { id: "c4", name: "Chicken Pokora", price: 115 }
+        ] 
+      }
+    ];
+
+    var cart = {};
+
+    function renderMenu() {
+      var container = document.getElementById('menu-container');
+      container.innerHTML = "";
+      
+      for (var i = 0; i < menuData.length; i++) {
+        var section = menuData[i];
+        var catHeader = document.createElement('div');
+        catHeader.className = "category-title";
+        catHeader.innerText = section.cat;
+        container.appendChild(catHeader);
+
+        for (var j = 0; j < section.items.length; j++) {
+          var item = section.items[j];
+          var card = document.createElement('div');
+          card.className = "item-card";
+          
+          card.innerHTML = 
+            '<div class="item-info">' +
+              '<h4>' + item.name + '</h4>' +
+              '<p>₹' + item.price + '</p>' +
+            '</div>' +
+            '<div class="qty-controls">' +
+              '<button type="button" class="btn-qty" onclick="updateCart(\'' + item.id + '\', \'' + item.name + '\', ' + item.price + ', -1)">-</button>' +
+              '<span class="qty-val" id="qty-' + item.id + '">0</span>' +
+              '<button type="button" class="btn-qty" onclick="updateCart(\'' + item.id + '\', \'' + item.name + '\', ' + item.price + ', 1)">+</button>' +
+            '</div>';
+            
+          container.appendChild(card);
+        }
+      }
+    }
+
+    function updateCart(id, name, price, change) {
+      if (!cart[id]) {
+        cart[id] = { name: name, price: price, qty: 0 };
+      }
+      cart[id].qty += change;
+      
+      if (cart[id].qty <= 0) {
+        delete cart[id];
+      }
+
+      var qtySpan = document.getElementById('qty-' + id);
+      if (qtySpan) {
+        qtySpan.innerText = cart[id] ? cart[id].qty : 0;
+      }
+      updateTotal();
+    }
+
+    function updateTotal() {
+      var total = 0;
+      for (var id in cart) {
+        total += cart[id].price * cart[id].qty;
+      }
+      document.getElementById('grandTotal').innerText = total;
+    }
+
+    function sendOrder() {
+      var location = document.getElementById('tableSelect').value;
+      var itemKeys = Object.keys(cart);
+      
+      if (itemKeys.length === 0) {
+        alert("कृपया ऑर्डर करने के लिए कम से कम एक आइटम चुनें!");
+        return;
+      }
+
+      var total = 0;
+      var text = "🍽️ *नया ऑर्डर - Berozgaar Engineer Restaurant*\n";
+      text += "📍 *स्थान:* " + location + "\n";
+      text += "--------------------------------\n";
+
+      for (var i = 0; i < itemKeys.length; i++) {
+        var id = itemKeys[i];
+        var itemTotal = cart[id].price * cart[id].qty;
+        total += itemTotal;
+        text += "• " + cart[id].name + " x " + cart[id].qty + " = ₹" + itemTotal + "\n";
+      }
+
+      text += "--------------------------------\n";
+      text += "💰 *कुल बिल:* ₹" + total + "\n\n";
+      text += "कृपया ऑर्डर कन्फर्म करें!";
+
+      // iPhone और Android पर बिना अटके तुरंत WhatsApp खोलने का लिंक
+      var whatsappUrl = "https://api.whatsapp.com/send?phone=" + RESTAURANT_PHONE + "&text=" + encodeURIComponent(text);
+      window.location.href = whatsappUrl;
+    }
+
+    // पेज लोड होते ही मेनू रेंडर करेगा
+    document.addEventListener("DOMContentLoaded", function() {
+      renderMenu();
+      var params = new URLSearchParams(window.location.search);
+      var table = params.get('table');
+      if (table) {
+        var select = document.getElementById('tableSelect');
+        if (select) select.value = table;
+      }
+    });
+  </script>
+</body>
+</html>
